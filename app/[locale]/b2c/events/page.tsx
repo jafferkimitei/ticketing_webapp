@@ -1,7 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useState } from "react";
-import EventCard from "../../../components/EventCard";
+import EventCard from "../../components/EventCard";
 
 export default function EventsPage() {
   const [page, setPage] = useState(1);

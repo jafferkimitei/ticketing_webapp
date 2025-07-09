@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { useClerk } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -9,8 +9,8 @@ export default function CheckoutPage({ params }: { params: { eventId: string } }
   const t = useTranslations("CheckoutPage");
   const { user } = useClerk();
   const userData = useQuery(api.functions.getUser, { clerkId: user?.id }) || null;
-  const event = useQuery(api.functions.getEvent, { eventId: params.eventId });
-  const purchaseTickets = useMutation(api.functions.purchaseTickets);
+  const event = useQuery(api.functions.getEvents, { eventId: params.eventId });
+  const purchaseTickets = useMutation(api.functions.purchaseTicket);
   const joinWaitlist = useMutation(api.functions.joinWaitlist);
   const applyPromoCode = useMutation(api.functions.applyPromoCode);
   const [selectedTickets, setSelectedTickets] = useState<{ [key: string]: number }>({});

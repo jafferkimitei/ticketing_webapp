@@ -13,6 +13,7 @@ import type {
   FilterApi,
   FunctionReference,
 } from "convex/server";
+import type * as functions_applyPromoCode from "../functions/applyPromoCode.js";
 import type * as functions_bulkManageTickets from "../functions/bulkManageTickets.js";
 import type * as functions_bulkRefundTickets from "../functions/bulkRefundTickets.js";
 import type * as functions_createEvent from "../functions/createEvent.js";
@@ -36,6 +37,7 @@ import type * as functions_getRecommendedEvents from "../functions/getRecommende
 import type * as functions_getResponse from "../functions/getResponse.js";
 import type * as functions_getSalesAnalytics from "../functions/getSalesAnalytics.js";
 import type * as functions_getScanningStats from "../functions/getScanningStats.js";
+import type * as functions_getUser from "../functions/getUser.js";
 import type * as functions_getUserTickets from "../functions/getUserTickets.js";
 import type * as functions_getUserTicketsWithFilters from "../functions/getUserTicketsWithFilters.js";
 import type * as functions_joinWaitlist from "../functions/joinWaitlist.js";
@@ -67,6 +69,7 @@ import type * as functions_verifyTicket from "../functions/verifyTicket.js";
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  "functions/applyPromoCode": typeof functions_applyPromoCode;
   "functions/bulkManageTickets": typeof functions_bulkManageTickets;
   "functions/bulkRefundTickets": typeof functions_bulkRefundTickets;
   "functions/createEvent": typeof functions_createEvent;
@@ -90,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   "functions/getResponse": typeof functions_getResponse;
   "functions/getSalesAnalytics": typeof functions_getSalesAnalytics;
   "functions/getScanningStats": typeof functions_getScanningStats;
+  "functions/getUser": typeof functions_getUser;
   "functions/getUserTickets": typeof functions_getUserTickets;
   "functions/getUserTicketsWithFilters": typeof functions_getUserTicketsWithFilters;
   "functions/joinWaitlist": typeof functions_joinWaitlist;

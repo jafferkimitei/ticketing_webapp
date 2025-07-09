@@ -6,26 +6,37 @@ import { useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 import { useTranslations } from "next-intl";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function DashboardPage() {
   const t = useTranslations("DashboardPage");
   const { user } = useClerk();
-  const events = useQuery(api.functions.getEvents, { organizerId: user?.id }) || [];
+  const events = useQuery(api.functions.getEvents, user?.id ? { organizerId: user.id } : "skip") || [];
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  
   const analytics = useQuery(
     api.functions.getSalesAnalytics,
-    selectedEventId ? { eventId: selectedEventId, organizerId: user?.id! } : "skip"
+    selectedEventId && user?.id ? { 
+      eventId: selectedEventId as Id<"events">, 
+      organizerId: user.id 
+    } : "skip"
   );
+  
   const scanningStats = useQuery(
     api.functions.getScanningStats,
-    selectedEventId ? { eventId: selectedEventId, organizerId: user?.id! } : "skip"
+    selectedEventId && user?.id ? { 
+      eventId: selectedEventId as Id<"events">, 
+      organizerId: user.id 
+    } : "skip"
   );
+  
   const notifyWaitlist = useMutation(api.functions.notifyWaitlist);
-  const notifications = useQuery(
+  
+  const notifications: { _id: string; type: string; message: string }[] = useQuery(
     api.functions.getNotifications,
-    user ? { userId: user.id } : "skip"
+    user ? { userId: user.id as Id<"users"> } : "skip"
   ) || [];
 
   const hourlyScansData = {
@@ -40,16 +51,23 @@ export default function DashboardPage() {
   };
 
   const handleNotifyWaitlist = async (ticketType: string) => {
+    if (!selectedEventId || !user?.id) return;
+    
     try {
       await notifyWaitlist({
-        eventId: selectedEventId!,
+        eventId: selectedEventId as Id<"events">,
         ticketType,
-        organizerId: user!.id,
+        organizerId: user.id as Id<"users">,
       });
       alert(t("notifyWaitlistSuccess") || `Waitlist for ${ticketType} notified!`);
     } catch (err) {
       alert(`Error: ${(err as Error).message}`);
     }
+  };
+
+  const extractTicketTypeFromMessage = (message: string): string => {
+    const match = message.match(/A (.+) ticket/);
+    return match ? match[1] : 'Unknown';
   };
 
   return (
@@ -130,18 +148,21 @@ export default function DashboardPage() {
             </h3>
             {notifications
               .filter((n) => n.type === "waitlist_trigger" && n.message.includes(analytics.eventName))
-              .map((n) => (
-                <div key={n._id} className="mt-2">
-                  <p>{n.message}</p>
-                  <button
-                    onClick={() => handleNotifyWaitlist(n.message.match(/A (.+) ticket/)![1])}
-                    className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600"
-                    aria-label={t("notifyWaitlist") || `Notify waitlist for ${n.message.match(/A (.+) ticket/)![1]}`}
-                  >
-                    {t("notifyWaitlist") || "Notify Waitlist"}
-                  </button>
-                </div>
-              ))}
+              .map((n) => {
+                const ticketType = extractTicketTypeFromMessage(n.message);
+                return (
+                  <div key={n._id} className="mt-2">
+                    <p>{n.message}</p>
+                    <button
+                      onClick={() => handleNotifyWaitlist(ticketType)}
+                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-600"
+                      aria-label={t("notifyWaitlist") || `Notify waitlist for ${ticketType}`}
+                    >
+                      {t("notifyWaitlist") || "Notify Waitlist"}
+                    </button>
+                  </div>
+                );
+              })}
             <h3 className="text-lg font-semibold text-gray-700 mt-4">
               {t("hourlyScans") || "Hourly Ticket Scans"}
             </h3>

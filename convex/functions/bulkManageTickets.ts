@@ -1,7 +1,9 @@
-import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { MutationCtx, mutation } from "../_generated/server";
 import { Resend } from "resend";
-import { sendPushNotification } from "./sendPushNotification";
+import * as React from "react";
+import TicketConfirmation from "../../app/emails/TicketConfirmation";
+import { Id } from "../_generated/dataModel";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -11,14 +13,16 @@ export const bulkManageTickets = mutation({
     action: v.union(v.literal("refund"), v.literal("resend"), v.literal("markUsed")),
     organizerId: v.id("users"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx: MutationCtx, args: { ticketIds: Id<"tickets">[]; action: "refund" | "resend" | "markUsed"; organizerId: Id<"users"> }) => {
+    // Verify organizer
     const organizer = await ctx.db.get(args.organizerId);
     if (!organizer || organizer.role !== "organizer") {
       throw new Error("Unauthorized");
     }
 
+    // Validate tickets and events
     const tickets = await Promise.all(
-      args.ticketIds.map(async (ticketId) => {
+      args.ticketIds.map(async (ticketId: Id<"tickets">) => {
         const ticket = await ctx.db.get(ticketId);
         if (!ticket) {
           throw new Error(`Ticket ${ticketId} not found`);
@@ -37,11 +41,10 @@ export const bulkManageTickets = mutation({
           .query("transactions")
           .withIndex("by_ticketId", (q) => q.eq("ticketId", ticket._id))
           .first();
-        if (!transaction) {
-          throw new Error(`No transaction found for ticket ${ticket._id}`);
+        if (!transaction || transaction.status !== "completed") {
+          throw new Error(`No valid transaction found for ticket ${ticket._id}`);
         }
-        // Call M-Pesa Reversal API (simplified for brevity)
-        // Assume reversal API call here
+        // TODO: Implement M-Pesa Reversal API
         await ctx.db.patch(ticket._id, { status: "refunded" });
         await ctx.db.patch(transaction._id, { status: "refunded" });
 
@@ -51,7 +54,7 @@ export const bulkManageTickets = mutation({
           .withIndex("by_eventId", (q) => q.eq("eventId", ticket.eventId).eq("ticketType", ticket.ticketType))
           .collect();
         for (const entry of waitlist) {
-          await sendPushNotification({
+          await ctx.db.mutation("sendPushNotification", {
             userId: entry.userId,
             message: `Tickets for ${ticket.ticketType} are now available!`,
           });
@@ -64,17 +67,19 @@ export const bulkManageTickets = mutation({
           throw new Error(`No email found for user ${ticket.userId}`);
         }
         const event = await ctx.db.get(ticket.eventId);
+        if (!event) {
+          throw new Error(`Event not found for ticket ${ticket._id}`);
+        }
         await resend.emails.send({
           from: "no-reply@yourdomain.com",
           to: user.email,
-          subject: `Your Ticket for ${event?.name}`,
-          html: `
-            <h2>Your Ticket</h2>
-            <p>Event: ${event?.name}</p>
-            <p>Ticket Type: ${ticket.ticketType}</p>
-            <p>Purchase Date: ${new Date(ticket.purchaseDate).toLocaleDateString()}</p>
-            <img src="${ticket.qrCode}" alt="QR Code" />
-          `,
+          subject: `Your Ticket for ${event.name}`,
+          react: React.createElement(TicketConfirmation, {
+            name: user.name,
+            eventName: event.name,
+            ticketType: ticket.ticketType,
+            qrCode: ticket.qrCode,
+          }),
         });
       }
     } else if (args.action === "markUsed") {

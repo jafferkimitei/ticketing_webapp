@@ -2,10 +2,10 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Link from "next/link";
-import EventCard from "../components/EventCard";
+import EventCard from "./components/EventCard";
 import { useClerk } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";
-import LocaleSwitcher from "../components/LocaleSwitcher";
+import LocaleSwitcher from "./components/LocaleSwitcher";
 
 export default function Home() {
   const t = useTranslations("Home");

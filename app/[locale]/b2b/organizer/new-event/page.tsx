@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../../convex/_generated/api"; 
 import { useClerk } from "@clerk/nextjs";
 import { useTranslations } from "next-intl";

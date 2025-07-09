@@ -1,5 +1,5 @@
 import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { api } from "../../../convex/_generated/api";
 
 interface PayoutButtonProps {
   eventId: string;
@@ -7,7 +7,7 @@ interface PayoutButtonProps {
 }
 
 export default function PayoutButton({ eventId, organizerId }: PayoutButtonProps) {
-  const releasePayout = useMutation(api.functions.releasePayout);
+  const releasePayout = useMutation(api.functions.releasePayouts);
 
   const handlePayout = async () => {
     try {
