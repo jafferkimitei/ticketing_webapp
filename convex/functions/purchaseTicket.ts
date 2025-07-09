@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { mutation } from "convex/server";
+import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import QRCode from "qrcode";
 import { Resend } from "resend";

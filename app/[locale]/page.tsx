@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import Link from "next/link";
@@ -63,8 +64,15 @@ export default function Home() {
               {t("recommendedEvents")}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recommendedEvents.events.map((event) => (
-                <EventCard key={event._id} event={{ id: event._id, ...event }} />
+              {recommendedEvents.events.map((event: { _id: string; [key: string]: any }) => (
+                <EventCard key={event._id} event={{
+                  id: event._id,
+                  name: event.name || "",
+                  description: event.description || "",
+                  date: event.date || "",
+                  location: event.location || "",
+                  ticketTypes: event.ticketTypes || []
+                }} />
               ))}
             </div>
           </div>
@@ -78,8 +86,15 @@ export default function Home() {
             {t("featuredEvents")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredEvents.events.map((event) => (
-              <EventCard key={event._id} event={{ id: event._id, ...event }} />
+            {featuredEvents.events.map((event: { _id: string; [key: string]: any }) => (
+              <EventCard key={event._id} event={{
+                id: event._id,
+                name: event.name || "",
+                description: event.description || "",
+                date: event.date || "",
+                location: event.location || "",
+                ticketTypes: event.ticketTypes || []
+              }} />
             ))}
           </div>
           <div className="mt-8 text-center">

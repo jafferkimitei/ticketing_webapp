@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @next/next/no-img-element */
 import { useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { useClerk } from "@clerk/nextjs";
@@ -18,7 +20,7 @@ export default function MyTicketsPage() {
       navigator.serviceWorker.ready.then((registration) => {
         registration.active?.postMessage({
           type: "CACHE_TICKETS",
-          tickets: tickets.map((ticket) => ({
+          tickets: tickets.map((ticket: { _id: string; eventName: string; ticketType: string; qrCode: string; purchaseDate: string }) => ({
             id: ticket._id,
             eventName: ticket.eventName,
             ticketType: ticket.ticketType,

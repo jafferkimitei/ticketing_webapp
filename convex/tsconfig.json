@@ -20,10 +20,6 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "paths": {
-    "@/*": ["./src/*"]
-
-  },
   "include": ["./**/*"],
   "exclude": ["./_generated"]
 }

@@ -1,4 +1,4 @@
-import { mutation } from "convex/server";
+import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../_generated/dataModel";
 import { createDecipheriv } from "crypto";

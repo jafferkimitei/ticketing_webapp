@@ -18,15 +18,17 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tool
 
 export default function AnalyticsPage() {
   const { user } = useClerk();
-  const events = useQuery(api.functions.getEvents, { organizerId: user?.id }) || [];
+  const events = useQuery(api.functions.getEvents, { organizerId: user?.id || "" }) || [];
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  
   const analytics = useQuery(
     api.functions.getSalesAnalytics,
-    selectedEventId ? { eventId: selectedEventId, organizerId: user?.id! } : "skip"
+    selectedEventId && user?.id ? { eventId: selectedEventId, organizerId: user.id } : "skip"
   );
+  
   const exportData = useQuery(
     api.functions.exportAnalytics,
-    selectedEventId ? { eventId: selectedEventId, organizerId: user?.id! } : "skip"
+    selectedEventId && user?.id ? { eventId: selectedEventId, organizerId: user.id } : "skip"
   );
 
   const dailySalesData = {
@@ -41,16 +43,16 @@ export default function AnalyticsPage() {
   };
 
   const ticketTypeData = {
-    labels: analytics ? analytics.ticketTypeBreakdown.map((t) => t.type) : [],
+    labels: analytics ? analytics.ticketTypeBreakdown.map((t: any) => t.type) : [],
     datasets: [
       {
         label: "Tickets Sold",
-        data: analytics ? analytics.ticketTypeBreakdown.map((t) => t.sold) : [],
+        data: analytics ? analytics.ticketTypeBreakdown.map((t: any) => t.sold) : [],
         backgroundColor: "rgba(153, 102, 255, 0.6)",
       },
       {
         label: "Revenue (KSH)",
-        data: analytics ? analytics.ticketTypeBreakdown.map((t) => t.revenue) : [],
+        data: analytics ? analytics.ticketTypeBreakdown.map((t: any) => t.revenue) : [],
         backgroundColor: "rgba(255, 159, 64, 0.6)",
       },
     ],
@@ -97,7 +99,7 @@ export default function AnalyticsPage() {
             aria-label="Select event for analytics"
           >
             <option value="">Select an event</option>
-            {events.map((event) => (
+            {events.map((event: any) => (
               <option key={event._id} value={event._id}>
                 {event.name}
               </option>
