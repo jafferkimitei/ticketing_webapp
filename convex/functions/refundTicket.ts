@@ -84,7 +84,6 @@ export const refundTicket = mutation({
   },
 });
 
-// Helper to get M-Pesa access token
 async function getMpesaAccessToken() {
   const auth = Buffer.from(
     `${process.env.MPESA_CONSUMER_KEY}:${process.env.MPESA_CONSUMER_SECRET}`

@@ -25,7 +25,8 @@ export const notifyWaitlist = mutation({
 
     const waitlistEntries = await ctx.db
       .query("waitlists")
-      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId).eq("ticketType", args.ticketType))
+      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+      .filter((q) => q.eq(q.field("ticketType"), args.ticketType))
       .collect();
 
     for (const entry of waitlistEntries) {

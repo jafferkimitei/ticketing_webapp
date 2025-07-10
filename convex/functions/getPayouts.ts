@@ -2,7 +2,7 @@ import { query } from "../_generated/server";
 import { v } from "convex/values";
 
 export const getPayouts = query({
-  args: { organizerId: v.string() },
+  args: { organizerId: v.id("users") },
   handler: async (ctx, args) => {
     const payouts = await ctx.db
       .query("payouts")

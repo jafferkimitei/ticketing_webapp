@@ -8,12 +8,12 @@ export const applyPromoCode = mutation({
     code: v.string(),
   },
   handler: async (ctx, args: { eventId: Id<"events">; code: string }) => {
-    // Placeholder: Validate promo code against a hypothetical "promos" table
+   
     const promo = await ctx.db
-      .query("promos") // Assumes a promos table; adjust as needed
+      .query("promoCodes") 
       .withIndex("by_code", (q) => q.eq("code", args.code))
       .first();
     if (!promo || promo.eventId !== args.eventId) throw new Error("Invalid or expired promo code");
-    return promo.discount; // e.g., 10 for 10% off
+    return promo.discount;
   },
 });

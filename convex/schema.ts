@@ -18,7 +18,7 @@ export default defineSchema({
     description: v.string(),
     date: v.string(),
     location: v.string(),
-    organizerId: v.string(),
+    organizerId: v.id("users"),
     category: v.string(),
     ticketTypes: v.array(
       v.object({
@@ -30,15 +30,15 @@ export default defineSchema({
     ),
     createdAt: v.string(),
     surgeSettings: v.optional(
-        v.object({
-          velocityThreshold: v.number(), // Tickets sold per hour to trigger surge
-          velocitySurge: v.number(), // Percentage increase (e.g., 20 for 20%)
-          availabilityThreshold: v.number(), // Percentage of tickets remaining
-          availabilitySurge: v.number(), // Percentage increase
-          disabled: v.boolean(),
-        })
-      ),
-    })
+      v.object({
+        velocityThreshold: v.number(),
+        velocitySurge: v.number(),
+        availabilityThreshold: v.number(),
+        availabilitySurge: v.number(),
+        disabled: v.boolean(),
+      })
+    ),
+  })
     .index("by_organizerId", ["organizerId"])
     .index("by_category", ["category"])
     .searchIndex("search_events", {
@@ -57,6 +57,7 @@ export default defineSchema({
   transactions: defineTable({
     ticketId: v.id("tickets"),
     userId: v.id("users"),
+    eventId: v.id("events"),
     amount: v.number(),
     paymentMethod: v.literal("mpesa"),
     status: v.string(),
@@ -64,7 +65,8 @@ export default defineSchema({
     mpesaReceiptNumber: v.string(),
   })
     .index("by_ticketId", ["ticketId"])
-    .index("by_mpesaReceiptNumber", ["mpesaReceiptNumber"]),
+    .index("by_mpesaReceiptNumber", ["mpesaReceiptNumber"])
+    .index("by_eventId", ["eventId"]),
   payouts: defineTable({
     organizerId: v.id("users"),
     eventId: v.id("events"),
@@ -111,7 +113,7 @@ export default defineSchema({
     createdAt: v.string(),
   })
     .index("by_eventId", ["eventId"])
-    .index("by_userId", ["userId"]),
+    .index("by_userId_eventId_ticketType", ["userId", "eventId", "ticketType"]),
   reviews: defineTable({
     userId: v.id("users"),
     eventId: v.id("events"),
@@ -121,9 +123,8 @@ export default defineSchema({
     status: v.union(v.literal("pending"), v.literal("approved"), v.literal("flagged")),
     flaggedReason: v.optional(v.string()),
   })
-    .index("by_eventId", ["eventId"])
-    .index("by_userId", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_eventId_status", ["eventId", "status"])
+    .index("by_userId_eventId", ["userId", "eventId"]),
   feedback: defineTable({
     userId: v.id("users"),
     subject: v.string(),

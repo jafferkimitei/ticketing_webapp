@@ -22,7 +22,9 @@ export const joinWaitlist = mutation({
 
     const existing = await ctx.db
       .query("waitlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId).eq("eventId", args.eventId).eq("ticketType", args.ticketType))
+      .withIndex("by_userId_eventId_ticketType", (q) =>
+        q.eq("userId", args.userId).eq("eventId", args.eventId).eq("ticketType", args.ticketType)
+      )
       .first();
     if (existing) {
       throw new Error("Already on waitlist");

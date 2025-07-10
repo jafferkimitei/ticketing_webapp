@@ -8,7 +8,6 @@ export const getNotifications = query({
       .query("notifications")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .order("desc")
-      .take(50)
-      .collect();
+      .take(50);
   },
 });

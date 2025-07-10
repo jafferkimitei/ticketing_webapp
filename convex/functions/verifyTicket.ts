@@ -54,6 +54,7 @@ export const verifyTicket = mutation({
 
       // Create notification
       await ctx.db.insert("notifications", {
+        type: "ticket_verified",
         userId: ticket.userId,
         message: `Your ${ticket.ticketType} ticket for ${event.name} was verified and used.`,
         read: false,
@@ -64,7 +65,7 @@ export const verifyTicket = mutation({
         success: true,
         eventName: event.name,
         ticketType: ticket.ticketType,
-        userName: ticket.userName,
+        userId: ticket.userId,
         purchaseDate: ticket.purchaseDate,
       };
     } catch (err) {

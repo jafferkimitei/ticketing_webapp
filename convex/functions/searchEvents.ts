@@ -8,7 +8,7 @@ export const searchEvents = query({
     limit: v.number(),
   },
   handler: async (ctx, args) => {
-    let eventsQuery = ctx.db
+    const eventsQuery = ctx.db
       .query("events")
       .withSearchIndex("search_events", (q) => q.search("name", args.query).search("description", args.query).search("location", args.query));
 

@@ -24,10 +24,10 @@ export const getDynamicPrice = query({
     const totalTickets = ticket.quantity;
     const availabilityPercentage = (ticket.available / totalTickets) * 100;
 
-    // Calculate tickets sold per hour (simplified for demo)
+    // Calculate tickets sold per hour
     const transactions = await ctx.db
       .query("transactions")
-      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
+      .withIndex("by_ticketId", (q) => q.eq("ticketId", args.eventId))
       .collect();
     const now = Date.now();
     const oneHourAgo = now - 60 * 60 * 1000;

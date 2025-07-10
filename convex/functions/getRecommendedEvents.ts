@@ -34,19 +34,12 @@ export const getRecommendedEvents = query({
       query = query.filter((q) => q.or(...preferredLocations.map((loc) => q.eq(q.field("location"), loc))));
     }
 
-    const events = await query
-      .order("desc")
-      .take(args.limit)
-      .collect();
+    const events = await query.order("desc").take(args.limit);
 
     // Fallback to popular events if no matches
     if (events.length === 0) {
       return {
-        events: await ctx.db
-          .query("events")
-          .order("desc")
-          .take(args.limit)
-          .collect(),
+        events: await ctx.db.query("events").order("desc").take(args.limit),
       };
     }
 

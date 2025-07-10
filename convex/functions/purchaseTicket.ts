@@ -31,7 +31,7 @@ export const purchaseTicket = mutation({
     phoneNumber: v.string(),
     promoCode: v.optional(v.string()),
   },
-  handler: async (ctx: import("convex/server").MutationCtx, args: {
+  handler: async (ctx: any, args: {
     eventId: string;
     userId: string;
     tickets: { ticketType: string; quantity: number }[];

@@ -6,7 +6,7 @@ export const getEventReviews = query({
   handler: async (ctx, args) => {
     const reviews = await ctx.db
       .query("reviews")
-      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId).eq("status", "approved"))
+      .withIndex("by_eventId_status", (q) => q.eq("eventId", args.eventId).eq("status", "approved"))
       .collect();
 
     return await Promise.all(

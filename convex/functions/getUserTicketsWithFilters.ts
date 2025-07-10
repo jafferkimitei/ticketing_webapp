@@ -1,11 +1,11 @@
 import { query } from "../_generated/server";
 import { v } from "convex/values";
+import { Doc } from "../_generated/dataModel";
 
 export const getUserTicketsWithFilters = query({
   args: {
-    userId: v.string(),
+    userId: v.id("users"),
     status: v.string(),
-    skip: v.number(),
     limit: v.number(),
   },
   handler: async (ctx, args) => {
@@ -17,11 +17,7 @@ export const getUserTicketsWithFilters = query({
       query = query.filter((q) => q.eq(q.field("status"), args.status));
     }
 
-    const tickets = await query
-      .order("desc")
-      .take(args.limit)
-      .skip(args.skip)
-      .collect();
+    const tickets = await query.order("desc").take(args.limit);
 
     const total = await ctx.db
       .query("tickets")
@@ -31,7 +27,7 @@ export const getUserTicketsWithFilters = query({
 
     return {
       tickets: await Promise.all(
-        tickets.map(async (ticket) => {
+        tickets.map(async (ticket: Doc<"tickets">) => {
           const event = await ctx.db.get(ticket.eventId);
           return { ...ticket, eventName: event?.name || "Unknown Event" };
         })

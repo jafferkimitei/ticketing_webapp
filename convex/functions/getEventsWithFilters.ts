@@ -6,12 +6,11 @@ export const getEventsWithFilters = query({
     location: v.string(),
     date: v.string(),
     category: v.string(),
-    skip: v.number(),
     limit: v.number(),
   },
   handler: async (ctx, args) => {
     let query = ctx.db.query("events");
-    
+
     if (args.location) {
       query = query.filter((q) => q.eq(q.field("location"), args.location));
     }
@@ -22,11 +21,7 @@ export const getEventsWithFilters = query({
       query = query.filter((q) => q.eq(q.field("category"), args.category));
     }
 
-    const events = await query
-      .order("desc")
-      .take(args.limit)
-      .skip(args.skip)
-      .collect();
+    const events = await query.order("desc").take(args.limit);
 
     const total = await ctx.db.query("events").collect().then((e) => e.length);
 

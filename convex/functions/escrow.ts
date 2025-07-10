@@ -35,6 +35,9 @@ export const releasePayout = mutation({
       throw new Error("Cannot release payout before event date");
     }
 
+    // Generate a temporary receipt number (replace with actual M-Pesa receipt when implementing)
+    const tempReceiptNumber = `TEMP-${Date.now()}`;
+
     // Create payout record
     const payoutId = await ctx.db.insert("payouts", {
       organizerId: args.organizerId,
@@ -42,12 +45,17 @@ export const releasePayout = mutation({
       amount: payoutAmount,
       status: "pending",
       createdAt: new Date().toISOString(),
+      mpesaReceiptNumber: tempReceiptNumber, 
     });
 
-    // TODO: Integrate M-Pesa B2C API to send payout to organizer
-    // For now, mark as completed
-    await ctx.db.patch(payoutId, { status: "completed" });
+    // TODO: Replace with actual M-Pesa B2C API integration
+    // For now, simulate successful payout
+    const mpesaReceiptNumber = `MPESA-${Date.now()}`;
+    await ctx.db.patch(payoutId, { 
+      status: "completed",
+      mpesaReceiptNumber: mpesaReceiptNumber 
+    });
 
-    return { success: true, payoutId };
+    return { success: true, payoutId, mpesaReceiptNumber };
   },
 });

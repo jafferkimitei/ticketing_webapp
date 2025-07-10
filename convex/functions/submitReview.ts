@@ -13,20 +13,35 @@ export const submitReview = mutation({
     if (!event) {
       throw new Error("Event not found");
     }
-    const ticket = await ctx.db
+
+    // Check if user has a used ticket for this event
+    const tickets = await ctx.db
       .query("tickets")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId).eq("eventId", args.eventId))
-      .first();
-    if (!ticket || ticket.status !== "used") {
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .collect();
+      
+    const hasUsedTicket = tickets.some(
+      (ticket) => ticket.eventId === args.eventId && ticket.status === "used"
+    );
+    
+    if (!hasUsedTicket) {
       throw new Error("You must attend the event to submit a review");
     }
-    const existingReview = await ctx.db
+
+    // Check for existing review
+    const reviews = await ctx.db
       .query("reviews")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId).eq("eventId", args.eventId))
-      .first();
+      .withIndex("by_userId_eventId", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    const existingReview = reviews.find(
+      (review) => review.eventId === args.eventId
+    );
+
     if (existingReview) {
       throw new Error("You have already reviewed this event");
     }
+
     if (args.rating < 1 || args.rating > 5) {
       throw new Error("Rating must be between 1 and 5");
     }

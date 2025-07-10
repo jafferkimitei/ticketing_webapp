@@ -1,9 +1,8 @@
 import { v } from "convex/values";
-import { MutationCtx, mutation } from "../_generated/server";
+import { mutation } from "../_generated/server";
 import { Resend } from "resend";
 import * as React from "react";
 import TicketConfirmation from "../../app/emails/TicketConfirmation";
-import { Id } from "../_generated/dataModel";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -13,7 +12,7 @@ export const bulkManageTickets = mutation({
     action: v.union(v.literal("refund"), v.literal("resend"), v.literal("markUsed")),
     organizerId: v.id("users"),
   },
-  handler: async (ctx: MutationCtx, args: { ticketIds: Id<"tickets">[]; action: "refund" | "resend" | "markUsed"; organizerId: Id<"users"> }) => {
+  handler: async (ctx, args) => {
     // Verify organizer
     const organizer = await ctx.db.get(args.organizerId);
     if (!organizer || organizer.role !== "organizer") {
@@ -22,7 +21,7 @@ export const bulkManageTickets = mutation({
 
     // Validate tickets and events
     const tickets = await Promise.all(
-      args.ticketIds.map(async (ticketId: Id<"tickets">) => {
+      args.ticketIds.map(async (ticketId) => {
         const ticket = await ctx.db.get(ticketId);
         if (!ticket) {
           throw new Error(`Ticket ${ticketId} not found`);
@@ -51,12 +50,19 @@ export const bulkManageTickets = mutation({
         // Notify waitlist if tickets become available
         const waitlist = await ctx.db
           .query("waitlists")
-          .withIndex("by_eventId", (q) => q.eq("eventId", ticket.eventId).eq("ticketType", ticket.ticketType))
+          .filter(q => 
+            q.eq(q.field("eventId"), ticket.eventId) &&
+            q.eq(q.field("ticketType"), ticket.ticketType)
+          )
           .collect();
+        
         for (const entry of waitlist) {
-          await ctx.db.mutation("sendPushNotification", {
+          await ctx.db.insert("notifications", {
             userId: entry.userId,
+            type: "waitlist_available",
             message: `Tickets for ${ticket.ticketType} are now available!`,
+            read: false,
+            createdAt: new Date().toISOString(),
           });
         }
       }
