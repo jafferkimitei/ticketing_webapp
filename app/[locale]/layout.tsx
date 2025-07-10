@@ -8,11 +8,13 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default async function RootLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
-  params: { locale: Locale };
+  params: Promise<{ locale: Locale }>; // Make params a Promise
 }) {
+  const { locale } = await params; // Await params before destructuring
+
   if (!locales.includes(locale)) {
     notFound();
   }
@@ -32,6 +34,7 @@ export default async function RootLayout({
           locale={locale}
           messages={messages}
           convexUrl={process.env.NEXT_PUBLIC_CONVEX_URL!}
+          timeZone="Africa/Nairobi"
         >
           {children}
         </ClientProviders>

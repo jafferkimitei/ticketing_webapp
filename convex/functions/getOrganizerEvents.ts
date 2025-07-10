@@ -2,7 +2,7 @@ import { query } from "../_generated/server";
 import { v } from "convex/values";
 
 export const getEvents = query({
-  args: { organizerId: v.string() },
+  args: { organizerId: v.id("users") },
   handler: async (ctx, args) => {
     const events = await ctx.db
       .query("events")

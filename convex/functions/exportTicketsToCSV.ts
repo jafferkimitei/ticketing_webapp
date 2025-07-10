@@ -1,16 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 
 export const exportTicketsToCSV = mutation({
   args: { eventId: v.id("events") },
   handler: async (ctx, args) => {
-    // 1. Fetch all tickets for the event
     const tickets = await ctx.db
       .query("tickets")
       .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
       .collect();
 
-    // 2. Prepare CSV headers and rows
     const headers = [
       "Ticket ID",
       "Event Name",
@@ -44,15 +43,12 @@ export const exportTicketsToCSV = mutation({
       })
     );
 
-    // 3. Generate CSV content
     const csvContent = [headers.join(","), ...rows].join("\n");
 
-    // 4. Store in Convex storage and get URL
-    const storageId = await ctx.storage.store(
+    const storageId = await (ctx.storage as any).write(
       new Blob([csvContent], { type: "text/csv" })
     );
 
-    // 5. Generate download URL (valid for 1 hour)
     const url = await ctx.storage.getUrl(storageId);
 
     if (!url) {

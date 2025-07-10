@@ -1,3 +1,5 @@
+"use node";
+
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { Id } from "../_generated/dataModel";
@@ -9,7 +11,7 @@ export const verifyTicket = mutation({
     organizerId: v.string(),
   },
   handler: async (ctx, args: { qrCodeData: string; organizerId: string }) => {
-    // Decrypt QR code
+    
     try {
       const [ivHex, encryptedHex] = args.qrCodeData.split(':');
       const iv = Buffer.from(ivHex, 'hex');
@@ -23,7 +25,7 @@ export const verifyTicket = mutation({
       }
       const actualTicketId = ticketId.replace('ticket:', '') as Id<"tickets">;
 
-      // Verify organizer
+      
       const user = await ctx.db
         .query("users")
         .withIndex("by_clerkId", (q) => q.eq("clerkId", args.organizerId))
@@ -32,27 +34,27 @@ export const verifyTicket = mutation({
         return { success: false, error: "Unauthorized" };
       }
 
-      // Get ticket
+      
       const ticket = await ctx.db.get(actualTicketId);
       if (!ticket) {
         return { success: false, error: "Ticket not found" };
       }
 
-      // Get event
+      
       const event = await ctx.db.get(ticket.eventId);
       if (!event || event.organizerId !== args.organizerId) {
         return { success: false, error: "Event not found or unauthorized" };
       }
 
-      // Check ticket status
+      
       if (ticket.status !== "active") {
         return { success: false, error: "Ticket is not active" };
       }
 
-      // Mark ticket as used
+     
       await ctx.db.patch(actualTicketId, { status: "used" });
 
-      // Create notification
+      
       await ctx.db.insert("notifications", {
         type: "ticket_verified",
         userId: ticket.userId,

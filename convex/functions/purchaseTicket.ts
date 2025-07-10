@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use node";
+
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
 import QRCode from "qrcode";
@@ -38,7 +40,7 @@ export const purchaseTicket = mutation({
     phoneNumber: string;
     promoCode?: string;
   }) => {
-    // Validate event and ticket types
+    
     const event = await ctx.db.get(args.eventId);
     if (!event) {
       throw new Error("Event not found");
@@ -50,13 +52,13 @@ export const purchaseTicket = mutation({
       }
     }
 
-    // Validate user
+   
     const user = await ctx.db.get(args.userId);
     if (!user) {
       throw new Error("User not found");
     }
 
-    // Validate promo code
+    
     let discount = 0;
     if (args.promoCode) {
       const promo = await ctx.db
@@ -70,7 +72,7 @@ export const purchaseTicket = mutation({
       await ctx.db.patch(promo._id, { uses: promo.uses + 1 });
     }
 
-    // Calculate total price with dynamic pricing
+    
     const ticketsSold = (await ctx.db
       .query("tickets")
       .withIndex("by_eventId", (q: { eq: (arg0: string, arg1: string) => any; }) => q.eq("eventId", args.eventId))
@@ -91,7 +93,7 @@ export const purchaseTicket = mutation({
       return sum + adjustedPrice * ticket.quantity * (1 - discount / 100);
     }, 0);
 
-    // M-Pesa STK Push
+   
     const accessToken = await getMpesaAccessToken();
     const timestamp = new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14);
     const password = Buffer.from(
@@ -124,7 +126,7 @@ export const purchaseTicket = mutation({
       throw new Error(`M-Pesa STK Push failed: ${stkPushResult.ResponseDescription}`);
     }
 
-    // Store pending transaction
+    
     const transactionId = await ctx.db.insert("transactions", {
       ticketId: null,
       userId: args.userId,
@@ -135,7 +137,7 @@ export const purchaseTicket = mutation({
       mpesaTransactionId: stkPushResult.CheckoutRequestID,
     });
 
-    // Query payment status
+    
     const queryResponse = await fetch("https://sandbox.safaricom.co.ke/mpesa/stkpushquery/v1/query", {
       method: "POST",
       headers: {
@@ -156,7 +158,7 @@ export const purchaseTicket = mutation({
       throw new Error(`Payment validation failed: ${queryResult.ResultDesc}`);
     }
 
-    // Create tickets with encrypted QR codes
+    
     const ticketIds: string[] = [];
     for (const ticket of args.tickets) {
       for (let i = 0; i < ticket.quantity; i++) {
@@ -181,21 +183,21 @@ export const purchaseTicket = mutation({
       }
     }
 
-    // Update transaction
+    
     await ctx.db.patch(transactionId, {
       ticketId: ticketIds[0],
       status: "completed",
       mpesaTransactionId: queryResult.MpesaReceiptNumber || stkPushResult.CheckoutRequestID,
     });
 
-    // Update ticket availability
+    
     const updatedTicketTypes = event.ticketTypes.map((t: { type: string; available: number; }) => {
       const purchased = args.tickets.find((p) => p.ticketType === t.type);
       return purchased ? { ...t, available: t.available - purchased.quantity } : t;
     });
     await ctx.db.patch(args.eventId, { ticketTypes: updatedTicketTypes });
 
-    // Send confirmation email
+   
     await resend.emails.send({
       from: "no-reply@yourdomain.com",
       to: user.email,
@@ -220,10 +222,13 @@ export const purchaseTicket = mutation({
     // Send push notification
     if (user.pushSubscription) {
       try {
-        await webPush.sendNotification(JSON.parse(user.pushSubscription), {
-          title: "Ticket Purchase Confirmed",
-          body: message,
-        });
+        await webPush.sendNotification(
+          JSON.parse(user.pushSubscription),
+          JSON.stringify({ 
+            title: "Ticket Purchase Confirmed",
+            body: message
+          })
+        );
       } catch (error) {
         console.error(`Failed to send push notification: ${(error as Error).message}`);
       }

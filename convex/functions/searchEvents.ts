@@ -8,15 +8,11 @@ export const searchEvents = query({
     limit: v.number(),
   },
   handler: async (ctx, args) => {
-    const eventsQuery = ctx.db
+    const events = await ctx.db
       .query("events")
-      .withSearchIndex("search_events", (q) => q.search("name", args.query).search("description", args.query).search("location", args.query));
-
-    const events = await eventsQuery
-      .order("desc")
+      .withSearchIndex("search_events", (q) => q.search("name", args.query))
       .take(args.limit)
-      .skip(args.skip)
-      .collect();
+      // .skip(args.skip);
 
     const total = await ctx.db.query("events").collect().then((e) => e.length);
 

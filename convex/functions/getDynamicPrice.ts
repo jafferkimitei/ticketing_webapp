@@ -27,7 +27,7 @@ export const getDynamicPrice = query({
     // Calculate tickets sold per hour
     const transactions = await ctx.db
       .query("transactions")
-      .withIndex("by_ticketId", (q) => q.eq("ticketId", args.eventId))
+      .withIndex("by_eventId", (q) => q.eq("eventId", args.eventId))
       .collect();
     const now = Date.now();
     const oneHourAgo = now - 60 * 60 * 1000;

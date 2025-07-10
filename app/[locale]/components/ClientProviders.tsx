@@ -11,6 +11,7 @@ interface ClientProvidersProps {
   locale: string;
   messages: any;
   convexUrl: string;
+  timeZone: string;
 }
 
 export default function ClientProviders({
@@ -18,11 +19,12 @@ export default function ClientProviders({
   locale,
   messages,
   convexUrl,
+  timeZone,
 }: ClientProvidersProps) {
   const convex = new ConvexReactClient(convexUrl);
 
   return (
-    <NextIntlClientProvider locale={locale} messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone} now={new Date()}>
       <ClerkProvider>
         <ConvexProvider client={convex}>
           {children}
